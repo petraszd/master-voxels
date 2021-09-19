@@ -1,0 +1,14 @@
+material RTTMaterials/MainPanel
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture dummy.jpg
+            }
+        }
+    }
+}
+

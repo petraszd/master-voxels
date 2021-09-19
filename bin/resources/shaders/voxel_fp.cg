@@ -1,0 +1,89 @@
+float3 calcLight(
+        float3 P, // Position
+        float3 N, // Normal
+        float3 col, // Color
+        float3 lPos, // Light's position
+        float3 lCol, // Ligth's color
+        float factor
+        )
+{
+    // Computes diffuse
+    float3 L = normalize(lPos - P);
+    float diffuseLight = max(dot(N, L), 0);
+
+    float3 output = col * float3(0.2, 0.2, 0.2) + col * lCol * diffuseLight;
+    return output * factor;
+}
+
+void main(
+        float3 pos : COLOR, // Uses color as position
+        float4 wpos: WPOS,
+        float3 nor: TEXCOORD0,
+
+        //uniform float3 lPos,
+        //uniform float3 lCol,
+
+        uniform float useLight,
+        uniform float alpha,
+        uniform float diffuseFactor,
+
+        uniform float textureDimension,
+        uniform float3 textureDeltas,
+
+        uniform float4 texSize,
+        uniform sampler2D negTex : TEXUNIT0,
+        uniform sampler3D volTex : TEXUNIT1,
+        uniform sampler2D trfTex : TEXUNIT2,
+
+        out float4 oCol : COLOR)
+{
+    float2 texCoord = wpos.xy / texSize.xy;
+    texCoord.y *= -1.0; // Cg texture coord sys is reversed on Y
+
+    // For multi cubes
+    float3 negPos = (tex2D(negTex, texCoord).xyz  - textureDeltas) * textureDimension;
+
+    float3 dir = normalize(negPos - pos);
+    float step = 0.01;
+
+    float4 acc = float4(0.0, 0.0, 0.0, 0.0);
+    float3 curPos = pos;
+    float4 curCol;
+    float4 sample;
+
+    float3 lightPos = float3(60.0, 60.0, 60.0);
+    float3 lightCol = float3(1.0, 1.0, 1.0);
+
+    float i;
+    for (i = 0; i < 150; ++i) {
+        sample = tex3D(volTex, curPos);
+        float4 transfer = tex2D(trfTex, float2(sample.a, 0.0));
+
+        if (useLight) {
+            curCol.xyz = calcLight(curPos, sample.xyz,
+                    transfer.xyz, lightPos, lightCol, diffuseFactor);
+        } else {
+            curCol.xyz = transfer.xyz * diffuseFactor;
+        }
+
+        curCol.a = transfer.a;
+        curCol.a *= alpha;
+        curCol.xyz *= curCol.a;
+
+        if (alpha > curCol.a) {
+            acc += (1.0 - acc.a) * curCol;
+        }
+        if (acc.a > 1.0) {
+            acc.a = 1.0;
+            break;
+        }
+
+        curPos += dir * step;
+        if (curPos.x > 1.0 || curPos.y > 1.0 || curPos.z > 1.0 ||
+            curPos.x < 0.0 || curPos.y < 0.0 || curPos.z < 0.0) {
+            break;
+        }
+    }
+    oCol = acc;
+}
+

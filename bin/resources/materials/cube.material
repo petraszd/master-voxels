@@ -1,0 +1,64 @@
+fragment_program voxelFP cg
+{
+    source voxel_fp.cg
+    entry_point main
+    profiles fp40
+    default_params {
+        param_named_auto texSize texture_size 0
+        // param_named_auto lPos light_position 0
+        // param_named_auto cPos camera_position_object_space 0
+        // param_named_auto cPos camera_position 0
+        param_named useLight float 1.0
+        param_named alpha float 1.0
+        param_named diffuseFactor float 1.0
+        param_named textureDimension float 1.0
+        param_named textureDeltas float3 0.0 0.0 0.0
+    }
+}
+
+vertex_program directionsVP cg
+{
+    source direction_vp.cg
+    entry_point main
+    profiles vp40
+    default_params {
+        param_named_auto worldViewProj worldviewproj_matrix
+    }
+}
+
+vertex_program voxelVP cg
+{
+    source voxel_vp.cg
+    entry_point main
+    profiles vp40
+    default_params {
+        param_named_auto worldViewProj worldviewproj_matrix
+    }
+}
+
+// cube.mesh comes with this material
+material Material
+{
+    technique
+    {
+        pass
+        {
+        }
+    }
+}
+
+material Cube/Colors
+{
+	technique
+	{
+        pass
+        {
+            cull_hardware anticlockwise
+
+            vertex_program_ref directionsVP
+            {
+            }
+        }
+	}
+}
+

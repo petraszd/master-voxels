@@ -1,0 +1,8 @@
+build/*
+tags
+*.swp
+bin/master
+bin/converter
+bin/Ogre.log
+bin/data/*
+

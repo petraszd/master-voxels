@@ -1,0 +1,18 @@
+CursorOverlays/Main
+{
+    zorder 100
+
+    container Panel(CursorOverlays/MainPanel)
+    {
+        metrics_mode pixels
+        transparent false
+        width 50
+        height 50
+        left -25
+        top -25
+        horz_align center
+        vert_align center
+        material CursorMaterials/MainPanel
+    }
+}
+
